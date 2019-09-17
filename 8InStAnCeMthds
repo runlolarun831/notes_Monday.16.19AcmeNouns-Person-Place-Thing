@@ -1,0 +1,95 @@
+Video8-Instance Methods
+
+CODE IS BROKEN
+
+AFTER I TOOK OUT MOST OF CLASS METHODS TO MATCH PROF'S CODE AT START OF Video8
+
+
+const Sequelize = require('sequelize');
+
+const conn = new Sequelize('postgres://localhost/my_noo_db');
+
+const Product = conn.define('product', {
+  id: {
+    primaryKey: true,
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4
+  },
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true
+  },
+  inStock: {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
+    defaultValue: true
+  }
+});
+
+Product.inStockProducts = function(){
+  return this.findAll({ where: { inStock: true }});
+}
+
+//makesure you put it on the prottype
+Product.protoype.sayHi = function(){
+  return `Hello my id is ${this.id} and my name is ${this.name} and I am ${this.inStock ? 'in stock' : 'out of stock'}`;
+}
+
+const Category = conn.define('category', {
+  id: {
+    primaryKey: true,
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4
+  },
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true
+  }
+});
+
+Product.belongsTo(Category);
+//
+const syncAndSeed = async()=> {
+  await conn.sync({ force: true });
+  const [fooCategory, barCategory, bazzCategory] = await Promise.all([ //order doesn't matter
+    Category.create({ name: 'The Foo Category' }), //1st promise
+    Category.create({ name: 'The Bar Category' }), //2nd promise
+    Category.create({ name: 'The Bazz Category' }) //3rd promise
+  ]);
+  const [foo1, foo2, foo3, bar1] = await Promise.all([
+    Product.create({ name: 'Foo 1', categoryId: fooCategory.id }),
+    Product.create({ name: 'Foo 2', categoryId: fooCategory.id }),
+    Product.create({ name: 'Foo 3', categoryId: fooCategory.id }),
+    Product.create({ name: 'Bar 1', categoryId: barCategory.id }),
+    Product.create({ name: 'Quq 1', inStock: false })
+  ]);
+
+  console.log(foo1.sayHi());
+  console.log(quq.sayHi());
+
+};
+
+syncAndSeed();
+
+
+
+
+
+*****************************************************************
+
+*****************************************************************
+
+*****************************************************************
+
+*****************************************************************
+
+
+*****************************************************************
+
+*****************************************************************
+
+*****************************************************************
+
+*****************************************************************

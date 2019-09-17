@@ -1,0 +1,146 @@
+Video #3-AddingFields_UUIDasPrimaryKey
+updated code for db.js for video #3
+
+const Sequelize = require('sequelize');  //capitalized, we are using it as Constructor
+
+//creating sequelized connection (sometimes called a client) w/ connection string
+const conn = new Sequelize('postgres://localhost/my_noo_db');
+
+//this is how you define a model also Capitalized pascal case
+//modified 2nd parameter is object
+//want to use gUUIDs w/ id   -pretty common usage
+//default value in Sequelize- generates UUID for you
+const Product = conn.define('product', {
+  id: {
+    primaryKey: true,
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4
+  },
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true
+  }
+});
+
+const Category = conn.define('category', {
+  id: {
+    primaryKey: true,
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4
+  },
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true
+  }
+});
+
+// create tables w/in database ({ this is configuration object wipes out and recreates table})
+conn.sync({ force: true });
+
+***************************************************************
+in Product model  adding name property to 2nd parameter object
+name     | character varying(255) |           |            |
+***************************************************************
+my_noo_db=# \d products
+                                      Table "public.products"
+  Column   |           Type           | Collation | Nullable |               Default
+-----------+--------------------------+-----------+----------+--------------------------------------
+ id        | integer                  |           | not null | nextval('products_id_seq'::regclass)
+ name      | character varying(255)   |           |          |
+ createdAt | timestamp with time zone |           | not null |
+ updatedAt | timestamp with time zone |           | not null |
+Indexes:
+    "products_pkey" PRIMARY KEY, btree (id)
+
+my_noo_db=#
+
+
+
+****************************************************************
+in Product model  adding name property w/ obj value to 2nd parameter object
+name has props.  name & allowNull: false   now:
+ name      | character varying(255)   |           | not null |
+****************************************************************
+
+lourdesmonahan=# \c my_noo_db
+You are now connected to database "my_noo_db" as user "lourdesmonahan".
+my_noo_db=# \d products
+                                      Table "public.products"
+  Column   |           Type           | Collation | Nullable |               Default
+-----------+--------------------------+-----------+----------+--------------------------------------
+ id        | integer                  |           | not null | nextval('products_id_seq'::regclass)
+ name      | character varying(255)   |           | not null |
+ createdAt | timestamp with time zone |           | not null |
+ updatedAt | timestamp with time zone |           | not null |
+Indexes:
+    "products_pkey" PRIMARY KEY, btree (id)
+
+
+****************************************************************
+added unique: true   to name property  now:
+Indexes:
+    "products_pkey" PRIMARY KEY, btree (id)
+    "products_name_key" UNIQUE CONSTRAINT, btree (name)
+****************************************************************
+lourdesmonahan=# \c my_noo_db
+You are now connected to database "my_noo_db" as user "lourdesmonahan".
+my_noo_db=# \d products
+                                      Table "public.products"
+  Column   |           Type           | Collation | Nullable |               Default
+-----------+--------------------------+-----------+----------+--------------------------------------
+ id        | integer                  |           | not null | nextval('products_id_seq'::regclass)
+ name      | character varying(255)   |           | not null |
+ createdAt | timestamp with time zone |           | not null |
+ updatedAt | timestamp with time zone |           | not null |
+Indexes:
+    "products_pkey" PRIMARY KEY, btree (id)
+    "products_name_key" UNIQUE CONSTRAINT, btree (name)
+
+****************************************************************
+added same name property from Product to Category
+****************************************************************
+lourdesmonahan=# \c my_noo_db
+You are now connected to database "my_noo_db" as user "lourdesmonahan".
+my_noo_db=# \d categories
+                                      Table "public.categories"
+  Column   |           Type           | Collation | Nullable |                Default
+-----------+--------------------------+-----------+----------+----------------------------------------
+ id        | integer                  |           | not null | nextval('categories_id_seq'::regclass)
+ name      | character varying(255)   |           | not null |
+ createdAt | timestamp with time zone |           | not null |
+ updatedAt | timestamp with time zone |           | not null |
+Indexes:
+    "categories_pkey" PRIMARY KEY, btree (id)
+    "categories_name_key" UNIQUE CONSTRAINT, btree (name)
+
+****************************************************************
+added id prop to both Product and Category
+-sequential tables went away
+****************************************************************
+
+You are now connected to database "my_noo_db" as user "lourdesmonahan".
+my_noo_db=# \d
+              List of relations
+ Schema |    Name    | Type  |     Owner
+--------+------------+-------+----------------
+ public | categories | table | lourdesmonahan
+ public | products   | table | lourdesmonahan
+(2 rows)
+
+****************************************************************
+after id prop added   now:
+id        | uuid                     |           | not null |
+****************************************************************
+my_noo_db=# \d categories
+                       Table "public.categories"
+  Column   |           Type           | Collation | Nullable | Default
+-----------+--------------------------+-----------+----------+---------
+ id        | uuid                     |           | not null |
+ name      | character varying(255)   |           | not null |
+ createdAt | timestamp with time zone |           | not null |
+ updatedAt | timestamp with time zone |           | not null |
+Indexes:
+    "categories_pkey" PRIMARY KEY, btree (id)
+    "categories_name_key" UNIQUE CONSTRAINT, btree (name)

@@ -1,0 +1,96 @@
+Video #5 -BelongsTo
+Setting Up Relationships - belongsTo
+
+update code #5
+
+const Sequelize = require('sequelize');  //capitalized, we are using it as Constructor
+
+//creating sequelized connection (sometimes called a client) w/ connection string
+const conn = new Sequelize('postgres://localhost/my_noo_db');
+
+//this is how you define a model also Capitalized pascal case
+//modified 2nd parameter is object
+//want to use gUUIDs w/ id   -pretty common usage
+//default value in Sequelize- generates UUID for you
+const Product = conn.define('product', {
+  id: {
+    primaryKey: true,
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4
+  },
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true
+  }
+});
+
+const Category = conn.define('category', {
+  id: {
+    primaryKey: true,
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4
+  },
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true
+  }
+});
+
+//make the connection/ relationship btwn. models
+Product.belongsTo(Category);
+//
+const syncAndSeed = async()=> {
+  await conn.sync({ force: true });
+  const [fooCategory, barCategory, bazzCategory] = await Promise.all([ //order doesn't matter
+    Category.create({ name: 'The Foo Category' }), //1st promise
+    Category.create({ name: 'The Bar Category' }), //2nd promise
+    Category.create({ name: 'The Bazz Category' }) //3rd promise
+  ]);
+  const [foo1, foo2, foo3, bar1] = await Promise.all([
+    Product.create({ name: 'Foo 1', categoryId: fooCategory.id }),
+    Product.create({ name: 'Foo 2', categoryId: fooCategory.id }),
+    Product.create({ name: 'Foo 3', categoryId: fooCategory.id }),
+    Product.create({ name: 'Bar 1', categoryId: barCategory.id }),
+    Product.create({ name: 'Quq 1' })
+  ]);
+  //console.log(foo1.get());// gives underlying data values
+};
+/*
+console.log(fooCategory);// Sequelize track data, gives us access to a row in database
+console.log(fooCategory.get());//get more specific data values
+*/
+
+syncAndSeed();
+
+
+*****************************************************************
+A category has many products. A product belongs to a category. A product has 1 category key.
+*****************************************************************
+
+
+
+*****************************************************************
+//make the connection/ relationship btwn. models now:
+categoryId | uuid                     |           |          |
+*****************************************************************
+my_noo_db=# \d products
+                        Table "public.products"
+   Column   |           Type           | Collation | Nullable | Default
+------------+--------------------------+-----------+----------+---------
+ id         | uuid                     |           | not null |
+ name       | character varying(255)   |           | not null |
+ createdAt  | timestamp with time zone |           | not null |
+ updatedAt  | timestamp with time zone |           | not null |
+ categoryId | uuid                     |           |          |
+Indexes:
+    "products_pkey" PRIMARY KEY, btree (id)
+    "products_name_key" UNIQUE CONSTRAINT, btree (name)
+Foreign-key constraints:
+    "products_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES categories(id) ON UPDATE CASCADE ON DELETE SET NULL
+
+
+
+
+

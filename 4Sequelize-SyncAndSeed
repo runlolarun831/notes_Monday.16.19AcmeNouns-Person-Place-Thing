@@ -1,0 +1,109 @@
+Video #4 -Sequelize-Sync and Seed
+Seeding Data and Sequelize Validation
+updated db.js for video#4
+
+const Sequelize = require('sequelize');  //capitalized, we are using it as Constructor
+
+//creating sequelized connection (sometimes called a client) w/ connection string
+const conn = new Sequelize('postgres://localhost/my_noo_db');
+
+//this is how you define a model also Capitalized pascal case
+//modified 2nd parameter is object
+//want to use gUUIDs w/ id   -pretty common usage
+//default value in Sequelize- generates UUID for you
+const Product = conn.define('product', {
+  id: {
+    primaryKey: true,
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4
+  },
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true
+  }
+});
+
+const Category = conn.define('category', {
+  id: {
+    primaryKey: true,
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4
+  },
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true
+  }
+});
+
+
+//
+const syncAndSeed = async()=> {
+  await conn.sync({ force: true });
+  const [fooCategory, barCategory, bazzCategory] = await Promise.all([ //order doesn't matter
+    Category.create({ name: 'The Foo Category' }), //1st promise
+    Category.create({ name: 'The Bar Category' }), //2nd promise
+    Category.create({ name: 'The Bazz Category' }) //3rd promise
+  ]);
+  const [foo1, foo2, foo3, bar1] = await Promise.all([
+    Product.create({ name: 'Foo 1' }),
+    Product.create({ name: 'Foo 2' }),
+    Product.create({ name: 'Foo 3' }),
+    Product.create({ name: 'Bar 1' })
+  ]);
+  //console.log(foo1.get());// gives underlying data values
+};
+/*
+console.log(fooCategory);// Sequelize track data, gives us access to a row in database
+console.log(fooCategory.get());//get more specific data values
+*/
+
+syncAndSeed();
+
+
+
+*****************************************************************
+addes syncAndSeed() to db.js
+now has placeholders   c/p from node:
+Executing (default): INSERT INTO "categories" ("id","name","createdAt","updatedAt") VALUES ($1,$2,$3,$4) RETURNING *;
+Executing (default): INSERT INTO "categories" ("id","name","createdAt","updatedAt") VALUES ($1,$2,$3,$4) RETURNING *;
+*****************************************************************
+
+Executing (default): DROP TABLE IF EXISTS "categories" CASCADE;
+Executing (default): DROP TABLE IF EXISTS "products" CASCADE;
+Executing (default): DROP TABLE IF EXISTS "products" CASCADE;
+Executing (default): CREATE TABLE IF NOT EXISTS "products" ("id" UUID , "name" VARCHAR(255) NOT NULL UNIQUE, "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL, "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL, PRIMARY KEY ("id"));
+Executing (default): SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND t.relkind = 'r' and t.relname = 'products' GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;
+Executing (default): DROP TABLE IF EXISTS "categories" CASCADE;
+Executing (default): CREATE TABLE IF NOT EXISTS "categories" ("id" UUID , "name" VARCHAR(255) NOT NULL UNIQUE, "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL, "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL, PRIMARY KEY ("id"));
+Executing (default): SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND t.relkind = 'r' and t.relname = 'categories' GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;
+Executing (default): INSERT INTO "categories" ("id","name","createdAt","updatedAt") VALUES ($1,$2,$3,$4) RETURNING *;
+Executing (default): INSERT INTO "categories" ("id","name","createdAt","updatedAt") VALUES ($1,$2,$3,$4) RETURNING *;
+
+************************************************************************************
+see! id is generated
+************************************************************************************
+my_noo_db=# SELECT * FROM categories;
+                  id                  |       name       |         createdAt          |         updatedAt
+--------------------------------------+------------------+----------------------------+----------------------------
+ 0665f2f2-268f-4b9a-8951-282ecc07683f | The Foo Category | 2019-09-16 13:06:40.756-07 | 2019-09-16 13:06:40.756-07
+ e7363503-9364-43c8-b191-df626c793574 | The Bar Category | 2019-09-16 13:06:40.773-07 | 2019-09-16 13:06:40.773-07
+(2 rows)
+
+(END)
+
+************************************************************************************
+added 3 Category.create  shown in nodemon below
+************************************************************************************
+Executing (default): INSERT INTO "categories" ("id","name","createdAt","updatedAt") VALUES ($1,$2,$3,$4) RETURNING *;
+Executing (default): INSERT INTO "categories" ("id","name","createdAt","updatedAt") VALUES ($1,$2,$3,$4) RETURNING *;
+Executing (default): INSERT INTO "categories" ("id","name","createdAt","updatedAt") VALUES ($1,$2,$3,$4) RETURNING *;
+
+************************************************************************************
+added 4 Product.create  shown in nodemon below
+************************************************************************************
+Executing (default): INSERT INTO "products" ("id","name","createdAt","updatedAt") VALUES ($1,$2,$3,$4) RETURNING *;
+Executing (default): INSERT INTO "products" ("id","name","createdAt","updatedAt") VALUES ($1,$2,$3,$4) RETURNING *;
+Executing (default): INSERT INTO "products" ("id","name","createdAt","updatedAt") VALUES ($1,$2,$3,$4) RETURNING *;
+Executing (default): INSERT INTO "products" ("id","name","createdAt","updatedAt") VALUES ($1,$2,$3,$4) RETURNING *;

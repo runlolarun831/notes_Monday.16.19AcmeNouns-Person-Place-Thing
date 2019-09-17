@@ -1,0 +1,106 @@
+Video #2- Sequelize Connection
+New Sequelize-the connection & syncing
+
+***Set-up project to test out Sequelize***
+
+npm init -y
+
+                     vvvvvvvvv library that sits on pg
+git init npm install sequelize pg
+                               ^^ making database calls
+
+touch db.js    <--this will be data layer
+
+nodemon db.js    <--to run
+git status
+
+echo node_modules >> .gitignore    <--to get rid of node_modules folder if it exists
+
+git status    <--to check if node_modules are gone
+
+git commit -m 'first commit'
+open db.js
+*********************************************************
+
+Notes on code....
+***************************************************************
+
+//this is 2nd video update of db.js "the data layer"
+
+const Sequelize = require('sequelize');  //capitalized, we are using it as Constructor
+
+//creating sequelized connection (sometimes called a client) w/ connection string
+const conn = new Sequelize('postgres://localhost/my_noo_db');
+
+//this is how you define a model also Capitalized
+const Product = conn.define('product', {});
+const Category = conn.define('category', {});
+
+// create tables w/in database ({ this is configuration object wipes out and recreates table})
+conn.sync({ force: true });
+
+
+*****************************************************************************
+makes table for you , make db.js code, psql create database, automatically
+makes table, and pluralizes category->categories  product->products
+*****************************************************************************
+
+^Cadmins-MacBook-Pro:sequelize-demo lourdesmonahan$ psql
+psql (11.5)
+Type "help" for help.
+
+lourdesmonahan=# CREATE DATABASE my_noo_db;
+CREATE DATABASE
+lourdesmonahan=# \q
+admins-MacBook-Pro:sequelize-demo lourdesmonahan$ nodemon db.js
+[nodemon] 1.19.2
+[nodemon] to restart at any time, enter `rs`
+[nodemon] watching dir(s): *.*
+[nodemon] starting `node db.js`
+Executing (default): DROP TABLE IF EXISTS "categories" CASCADE;
+Executing (default): DROP TABLE IF EXISTS "products" CASCADE;
+Executing (default): DROP TABLE IF EXISTS "products" CASCADE;
+Executing (default): CREATE TABLE IF NOT EXISTS "products" ("id"   SERIAL , "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL, "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL, PRIMARY KEY ("id"));
+Executing (default): SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND t.relkind = 'r' and t.relname = 'products' GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;
+Executing (default): DROP TABLE IF EXISTS "categories" CASCADE;
+Executing (default): CREATE TABLE IF NOT EXISTS "categories" ("id"   SERIAL , "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL, "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL, PRIMARY KEY ("id"));
+Executing (default): SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND t.relkind = 'r' and t.relname = 'categories' GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;
+
+*****************************************************************************
+\d
+details 2 tables
+        2 sequences because we r using intergers as primary keys
+*****************************************************************************
+
+^Cadmins-MacBook-Pro:sequelize-demo lourdesmonahan$ psql
+psql (11.5)
+Type "help" for help.
+
+lourdesmonahan=# \c my_noo_db
+You are now connected to database "my_noo_db" as user "lourdesmonahan".
+my_noo_db=# \d
+                   List of relations
+ Schema |       Name        |   Type   |     Owner
+--------+-------------------+----------+----------------
+ public | categories        | table    | lourdesmonahan
+ public | categories_id_seq | sequence | lourdesmonahan
+ public | products          | table    | lourdesmonahan
+ public | products_id_seq   | sequence | lourdesmonahan
+(4 rows)
+
+my_noo_db=#
+*****************************************************************************
+
+\d categories
+*****************************************************************************
+my_noo_db=# \d categories
+                                      Table "public.categories"
+  Column   |           Type           | Collation | Nullable |                Default
+-----------+--------------------------+-----------+----------+----------------------------------------
+ id        | integer                  |           | not null | nextval('categories_id_seq'::regclass)
+ createdAt | timestamp with time zone |           | not null |
+ updatedAt | timestamp with time zone |           | not null |
+Indexes:
+    "categories_pkey" PRIMARY KEY, btree (id)
+
+

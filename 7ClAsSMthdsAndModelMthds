@@ -1,0 +1,113 @@
+Video7-ClassMethods&ModelMethods
+Class ModelMethods
+updated code for #7
+
+const Sequelize = require('sequelize');
+
+const conn = new Sequelize('postgres://localhost/my_noo_db');
+
+const Product = conn.define('product', {
+  id: {
+    primaryKey: true,
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4
+  },
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true
+  },
+  inStock: {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
+    defaultValue: true
+  }
+});
+
+// After we declare our model we can make methods to go w/ it
+//Class Method (aka Model Method) will be some binding here so funct()
+//no reason forAsync await but it is already a Promise  going to be returned
+Product.inStockProducts = function(){
+  return this.findAll({ where: { inStock: true }});
+}
+/*The ^^^above^^^ class method could be written like the code vvv below vvv */
+// Product.inStockProducts = function(){
+//   return this.findAll({ where: { inStock: true }});
+// }
+
+const Category = conn.define('category', {
+  id: {
+    primaryKey: true,
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4
+  },
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true
+  }
+});
+
+Product.belongsTo(Category);
+//
+const syncAndSeed = async()=> {
+  await conn.sync({ force: true });
+  const [fooCategory, barCategory, bazzCategory] = await Promise.all([ //order doesn't matter
+    Category.create({ name: 'The Foo Category' }), //1st promise
+    Category.create({ name: 'The Bar Category' }), //2nd promise
+    Category.create({ name: 'The Bazz Category' }) //3rd promise
+  ]);
+  const [foo1, foo2, foo3, bar1] = await Promise.all([
+    Product.create({ name: 'Foo 1', categoryId: fooCategory.id }),
+    Product.create({ name: 'Foo 2', categoryId: fooCategory.id }),
+    Product.create({ name: 'Foo 3', categoryId: fooCategory.id }),
+    Product.create({ name: 'Bar 1', categoryId: barCategory.id }),
+    Product.create({ name: 'Quq 1', inStock: false })
+  ]);
+
+  //  const product = await Product.findOne({ where: { name: 'Foo 1' } });
+  //  console.log(product && product.name);
+
+  // vvv calls on the Class Method vvv
+  const inStock = await Product.inStockProducts();
+  console.log(inStock.length);
+
+
+  // //important to note that Sequelize will "" inStock for you
+  // const inStock = await Product.findAll({ where: { inStock: true } });
+  // console.log(inStock.length); //5 updated to 4 after Quq 1 false
+};
+
+syncAndSeed();
+
+*****************************************************************
+added inStock to Product
+*****************************************************************
+my_noo_db=# \d products
+                        Table "public.products"
+   Column   |           Type           | Collation | Nullable | Default
+------------+--------------------------+-----------+----------+---------
+ id         | uuid                     |           | not null |
+ name       | character varying(255)   |           | not null |
+ inStock    | boolean                  |           | not null | true
+ createdAt  | timestamp with time zone |           | not null |
+ updatedAt  | timestamp with time zone |           | not null |
+ categoryId | uuid                     |           |          |
+Indexes:
+    "products_pkey" PRIMARY KEY, btree (id)
+    "products_name_key" UNIQUE CONSTRAINT, btree (name)
+Foreign-key constraints:
+    "products_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES categories(id) ON UPDATE CASCADE ON DELETE SET NULL
+
+*****************************************************************
+checking only inStock
+*****************************************************************
+my_noo_db=# select "inStock" from products;
+ inStock
+---------
+ t
+ t
+ t
+ t
+ t
+(5 rows)

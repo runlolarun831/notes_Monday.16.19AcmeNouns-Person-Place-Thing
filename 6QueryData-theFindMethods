@@ -1,0 +1,86 @@
+Video #6 --Query Data-the findMethods
+-Query Methods
+updated code for video#6
+
+const Sequelize = require('sequelize');
+
+const conn = new Sequelize('postgres://localhost/my_noo_db');
+
+const Product = conn.define('product', {
+  id: {
+    primaryKey: true,
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4
+  },
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true
+  }
+});
+
+const Category = conn.define('category', {
+  id: {
+    primaryKey: true,
+    type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4
+  },
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true
+  }
+});
+
+//make the connection/ relationship btwn. models
+Product.belongsTo(Category);
+//
+const syncAndSeed = async()=> {
+  await conn.sync({ force: true });
+  const [fooCategory, barCategory, bazzCategory] = await Promise.all([ //order doesn't matter
+    Category.create({ name: 'The Foo Category' }), //1st promise
+    Category.create({ name: 'The Bar Category' }), //2nd promise
+    Category.create({ name: 'The Bazz Category' }) //3rd promise
+  ]);
+  const [foo1, foo2, foo3, bar1] = await Promise.all([
+    Product.create({ name: 'Foo 1', categoryId: fooCategory.id }),
+    Product.create({ name: 'Foo 2', categoryId: fooCategory.id }),
+    Product.create({ name: 'Foo 3', categoryId: fooCategory.id }),
+    Product.create({ name: 'Bar 1', categoryId: barCategory.id }),
+    Product.create({ name: 'Quq 1' })
+  ]);
+  /*types of queries   3 differen Methods findAll, findAll with where, findOne, findByPk */
+
+  //gives array
+  const products = await Product.findAll();//you get a collection of data (3 diff. products)
+
+  // gives array
+  const products = await Product.findAll({ where: { name: 'Foo 1' } });
+  console.log(products[0].get());//gets you a product
+  console.log(products.length);//5
+
+  //if we know name is unique don't have to do a findAll()
+  //gives us at most one or none
+  const product = await Product.findOne({ where: { name: 'Foo 1' } });
+  console.log(product.get());// returns error and null value
+
+  //but if You :??? at last min of video
+  console.log(product && product.name);//won't get error  return name if valid
+
+
+
+  //Bazz not there
+  const product = await Product.findOne({ where: { name: 'Bazz 1' } });
+  console.log(product.get());
+
+
+  //if you have the primary key
+  const product = await Product.findByPk(Foo1.id);
+  console.log(product.get());
+
+};
+
+
+syncAndSeed();
+
+

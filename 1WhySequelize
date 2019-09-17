@@ -1,0 +1,21 @@
+Video #1 What is Sequelize?
+-library you install
+
+-sits on tops of other database drivers
+Sequelize sits on top of pg node module
+-have to install both Sequelize and postgres
+-it can work ontop of other databases as well
+
+Sequelize is ORM
+-Object Relational Model
+  -you define your Model
+  -you define properties on your Model
+
+  instead of writing in Seqelize you let the ORM do the work for you so you don't have to manually do it.
+  It sits ontop of you data layer, becomes part of it
+
+  Important!
+  -the order in which you drop and create tables
+  -have to define your own rlationships
+  -we will generate some of the models that will generate
+  all of the SQL????
